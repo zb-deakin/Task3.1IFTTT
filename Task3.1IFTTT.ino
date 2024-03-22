@@ -8,14 +8,14 @@ char wifiPassword[] = WIFI_PASSWORD;
 int wifiConnectionStatus = WL_IDLE_STATUS;
 String connection = "Wifi connecting to '" + String(wifiAccessPointName) + "'";
 // wifi client
-WiFiClient wifiClient;  
+WiFiClient wifiClient;
 
 // setup http client for IFTT
 char serverAddress[] = "maker.ifttt.com";
 String credentials = "/trigger/" + String(IFTTT_EVENT) + "/with/key/" + String(IFTTT_KEY);
 String queryStringValue;
 // http client
-HttpClient httpClient = HttpClient(wifiClient, serverAddress);  
+HttpClient httpClient = HttpClient(wifiClient, serverAddress);
 
 // setup light sensor variables
 int lightSensorPin = A0;
@@ -28,19 +28,11 @@ void setup() {
   while (!Serial)
     ;
 
-  // connect to wifi
+  // wait until wifi connection is ready
   Serial.println(connection);
   wifiConnectionStatus = WiFi.begin(wifiAccessPointName, wifiPassword);
-
-  // wait until wifi is ready
-  while (wifiConnectionStatus != WL_CONNECTED) {
-    Serial.println(connection);
-
-    wifiConnectionStatus = WiFi.begin(wifiAccessPointName, wifiPassword);
-
-    // wait 5 seconds for connection to start
-    delay(5000);
-  }
+  while (wifiConnectionStatus != WL_CONNECTED)
+    ;
 
   Serial.println("*** CONNECTED TO WIFI ***");
 }
@@ -51,22 +43,22 @@ void loop() {
   // give it a moment to convert from analogue to digital value
   delay(10);
   // print captured value
-  Serial.println(lightSensorValue);
+  Serial.println("Light sensor value: " + String(lightSensorValue));
 
-  // trigger a GET request to IFTTT webook
+  // prepare data for IFTT
   queryStringValue = String(lightSensorValue > brightnessBoundary ? "HGH_BRIGHTNESS" : "LOW_BRIGHTNESS") + String("_" + String(lightSensorValue));
-  
-  // send the http request
+
+  // send a http GET request to the IFTTT webhook
   httpClient.get(credentials + "?value1=" + queryStringValue);
-  
+
   // process the response
   int statusCode = httpClient.responseStatusCode();
   String response = httpClient.responseBody();
 
   // print the response
-  Serial.println("HTTP response code: " + statusCode);
+  Serial.println("HTTP response code: " + String(statusCode));
   Serial.println("IFTTT response: " + response);
-  
+
   // space out the notifications to stop spamming of the device
   Serial.println("Pause for 20 seconds");
   delay(20000);
