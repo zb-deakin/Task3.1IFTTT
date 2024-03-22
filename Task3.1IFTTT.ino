@@ -57,6 +57,7 @@ void setup() {
 
   // timeClientUdp.begin();
   ntp.timeZone(8);
+  ntp.isDST(false);
   ntp.begin();
   Serial.println("*** NTP client ready ***");
   timeSinceArduinoWasStarted = millis();
